@@ -32,8 +32,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
             
             if editingStyle == .delete {
-                //terms.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .bottom)
+                let defaults = UserDefaults.standard
+                titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
+                subTitleArr = defaults.array(forKey: "subTitleNames") as? [String] ?? [String]()
+                titleArr.remove(at: indexPath.row)
+                subTitleArr.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+                defaults.set(titleArr, forKey: "titleNames")
+                defaults.set(subTitleArr, forKey: "subTitleNames")
+                defaults.synchronize()
             }
     }
     
