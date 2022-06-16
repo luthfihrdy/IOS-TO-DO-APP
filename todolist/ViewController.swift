@@ -18,6 +18,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath) as? TableViewCell
         cell?.titleLabel.text = titleArr[indexPath.item]
         cell?.subTitleLabel.text = subTitleArr[indexPath.item]
+        cell?.notesLabel.text = notesArr[indexPath.item]
         return cell!
     }
     
@@ -35,13 +36,21 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 let defaults = UserDefaults.standard
                 titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
                 subTitleArr = defaults.array(forKey: "subTitleNames") as? [String] ?? [String]()
+                notesArr = defaults.array(forKey: "notesNames") as? [String] ?? [String]()
+                
                 titleArr.remove(at: indexPath.row)
                 subTitleArr.remove(at: indexPath.row)
+                notesArr.remove(at: indexPath.row)
                 tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
                 defaults.set(titleArr, forKey: "titleNames")
                 defaults.set(subTitleArr, forKey: "subTitleNames")
+                defaults.set(notesArr, forKey: "notesNames")
                 defaults.synchronize()
             }
+    }
+    
+     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 180.0
     }
     
 //    class: FirstViewController {
@@ -64,6 +73,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     var titleArr = [String]()
     var subTitleArr = [String]()
+    var notesArr = [String]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,10 +83,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.dataSource = self
         titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
         subTitleArr = defaults.array(forKey: "subTitleNames") as? [String] ?? [String]()
+        notesArr = defaults.array(forKey: "notesNames") as? [String] ?? [String]()
 //        UserDefaults.standard.set("", forKey: "subTitleNames")
 //        UserDefaults.standard.set("", forKey: "titleNames")
+//        UserDefaults.standard.set("", forKey: "notesNames")
+//        
         print(titleArr.count)
         print(subTitleArr.count)
+        print(notesArr.count)
         tableView.reloadData()
         NotificationCenter.default.addObserver(self, selector: #selector(loadList), name: NSNotification.Name(rawValue: "load"), object: nil)
     }
