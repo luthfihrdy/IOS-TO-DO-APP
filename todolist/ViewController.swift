@@ -10,15 +10,18 @@ import UIKit
 
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    var defaults = UserDefaults.standard
+    var taskList:[task] = []
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return titleArr.count
+        return taskList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath) as? TableViewCell
-        cell?.titleLabel.text = titleArr[indexPath.item]
-        cell?.subTitleLabel.text = subTitleArr[indexPath.item]
-        cell?.notesLabel.text = notesArr[indexPath.item]
+        cell?.titleLabel.text = taskList[indexPath.row].title
+        cell?.subTitleLabel.text = taskList[indexPath.row].subtitle
+        cell?.notesLabel.text = taskList[indexPath.row].notes
         return cell!
     }
     
@@ -33,43 +36,68 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
             
             if editingStyle == .delete {
-                let defaults = UserDefaults.standard
-                titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
-                subTitleArr = defaults.array(forKey: "subTitleNames") as? [String] ?? [String]()
-                notesArr = defaults.array(forKey: "notesNames") as? [String] ?? [String]()
                 
-                titleArr.remove(at: indexPath.row)
-                subTitleArr.remove(at: indexPath.row)
-                notesArr.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
-                defaults.set(titleArr, forKey: "titleNames")
-                defaults.set(subTitleArr, forKey: "subTitleNames")
-                defaults.set(notesArr, forKey: "notesNames")
-                defaults.synchronize()
+                self.taskList.remove(at: indexPath.row)
+                let encoder = PropertyListEncoder()
+                          
+                  if let encoded = try? encoder.encode(taskList) {
+                      defaults.set(encoded, forKey: "data")
+                     
+                  }
+                  tableView.reloadData()
+                
+                //let defaults = UserDefaults.standard
+//                titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
+//                subTitleArr = defaults.array(forKey: "subTitleNames") as? [String] ?? [String]()
+//                notesArr = defaults.array(forKey: "notesNames") as? [String] ?? [String]()
+                
+//                titleArr.remove(at: indexPath.row)
+//                subTitleArr.remove(at: indexPath.row)
+//                notesArr.remove(at: indexPath.row)
+//                tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+//                defaults.set(titleArr, forKey: "titleNames")
+//                defaults.set(subTitleArr, forKey: "subTitleNames")
+//                defaults.set(notesArr, forKey: "notesNames")
+//                defaults.synchronize()
             }
     }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+            -> UISwipeActionsConfiguration? {
+            let deleteAction = UIContextualAction(style: .destructive, title: nil) { (_, _, completionHandler) in
+                // delete the item here
+                completionHandler(true)
+            }
+            deleteAction.image = UIImage(systemName: "trash")
+            deleteAction.backgroundColor = .systemRed
+            let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+            return configuration
+    }
+    
+    //Klik Cell
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(taskList)
+        print(indexPath.row)
+        
+        DetailViewController.detailData.titleData = taskList[indexPath.row].title
+        
+        
+    }
+    
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+//        let detailController = segue.destination as? DetailViewController
+//        detailController?.title = taskList[indexPath.row].title
+//        detailController?.subTitleData = taskList[indexPath.row].subtitle
+//        detailController?.notesData = taskList[indexPath.row].notes
+//    }
+
     
      func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 180.0
     }
     
-//    class: FirstViewController {
-//        var tableView: UITableView
-//
-//        present(SecondViewController(), animated: true, completion: nil)
-//    }
-    
-    
-    
     @IBOutlet weak var tableView: UITableView!
-    
-//    @IBAction func unwindToViewController(segue: UIStoryboardSegue) {
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
-//            }
-//        }
-//    }
     
     var titleArr = [String]()
     var subTitleArr = [String]()
@@ -77,8 +105,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let savedData = defaults.value(forKey: "data") as? Data {
+            let loadedData = try? PropertyListDecoder().decode(Array<task>.self, from: savedData)
+            taskList = loadedData!
+        }
+        
+        
         // Do any additional setup after loading the view.
-        let defaults = UserDefaults.standard
+        //let defaults = UserDefaults.standard
         tableView.delegate = self
         tableView.dataSource = self
         titleArr = defaults.array(forKey: "titleNames") as? [String] ?? [String]()
@@ -99,6 +134,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         //load data here
         self.tableView.reloadData()
     }
+    
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+//        let detailController = segue.destination as? DetailViewController
+////        detailController?.detailData = nameField.text ?? ""
+//    }
 
 
 }
